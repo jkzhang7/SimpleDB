@@ -22,8 +22,18 @@ public class Catalog {
      * Constructor.
      * Creates a new, empty catalog.
      */
+	
+	private ConcurrentHashMap<Integer, DbFile> id2file;
+	private ConcurrentHashMap<Integer, String> id2key;
+	private ConcurrentHashMap<Integer, String> id2name;
+	
     public Catalog() {
         // some code goes here
+    	// construct the mapping
+    	id2file = new ConcurrentHashMap<Integer, DbFile>();
+    	id2key = new ConcurrentHashMap<Integer, String>();
+    	id2name = new ConcurrentHashMap<Integer, String>();
+    	
     }
 
     /**
@@ -37,6 +47,26 @@ public class Catalog {
      */
     public void addTable(DbFile file, String name, String pkeyField) {
         // some code goes here
+    	int id = file.getId();
+//    	if (id2file.containsKey(id)) {
+//    		id2file.remove(id,);
+//    		id2name.remove(id,);
+//    		id2key.remove(id,);
+//    	}
+    	for (Integer tmp_id: id2name.keySet()) {
+    		if (id2name.get(tmp_id).equals(name)) {
+    			if (tmp_id != id) {
+    				id2name.remove(tmp_id);
+	    			id2key.remove(tmp_id);
+	    			id2file.remove(tmp_id);
+    			}
+    			break;
+    		}
+    	}
+//    	id2file.co, remappingFunction)
+    	id2file.put(id, file);
+    	id2name.put(id, name);
+    	id2key.put(id, pkeyField);
     }
 
     public void addTable(DbFile file, String name) {
@@ -60,7 +90,12 @@ public class Catalog {
      */
     public int getTableId(String name) throws NoSuchElementException {
         // some code goes here
-        return 0;
+    	for (Integer id: id2name.keySet()) {
+    		if (id2name.get(id).equals(name)) {
+    			return id;
+    		}
+    	}
+        throw new NoSuchElementException();
     }
 
     /**
@@ -71,7 +106,11 @@ public class Catalog {
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
         // some code goes here
-        return null;
+    	if (id2file.containsKey(tableid)) {
+    		return id2file.get(tableid).getTupleDesc();
+    	}
+//        return null;
+    	throw new NoSuchElementException();
     }
 
     /**
@@ -82,27 +121,41 @@ public class Catalog {
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
         // some code goes here
-        return null;
+    	if (id2file.containsKey(tableid)) {
+    		return id2file.get(tableid);
+    	}
+//        return null;
+    	throw new NoSuchElementException();
     }
 
     public String getPrimaryKey(int tableid) {
         // some code goes here
-        return null;
+    	if (id2key.containsKey(tableid)) {
+    		return id2key.get(tableid);
+    	}
+        throw new NoSuchElementException();
     }
 
     public Iterator<Integer> tableIdIterator() {
         // some code goes here
-        return null;
+    	
+        return id2file.keySet().iterator();
     }
 
     public String getTableName(int id) {
         // some code goes here
-        return null;
+    	if (id2name.containsKey(id)) {
+    		return id2name.get(id);
+    	}
+    	throw new NoSuchElementException();
     }
     
     /** Delete all tables from the catalog */
     public void clear() {
         // some code goes here
+    	id2file.clear();
+    	id2name.clear();
+    	id2key.clear();
     }
     
     /**
